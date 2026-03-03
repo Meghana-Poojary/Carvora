@@ -5,6 +5,9 @@ const styles = `
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  button { outline: none; }
+  button:focus, button:active { outline: none; box-shadow: none; }
+
   :root {
     --bg: #080808; --bg2: #0d0d0d; --surface: #111111; --surface2: #161616;
     --surface3: #1a1a1a; --border: #222222; --border2: #2a2a2a;
@@ -23,7 +26,10 @@ const styles = `
   .app { display: flex; height: 100vh; overflow: hidden; }
 
   /* ── SIDEBAR ── */
-  .sidebar { width: 220px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; }
+  .sidebar { width: 220px; flex: 0 0 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; position: relative; transition: width 300ms ease-in-out, transform 300ms ease-in-out; overflow: hidden; }
+  .sidebar.collapsed { width: 0; flex: 0 0 0; transform: translateX(-8px); border-right: none; }
+  .sidebar-toggle { background: none; border: none; color: var(--text); cursor: pointer; font-size: 18px; padding: 8px 10px; margin-right: 8px; display: inline-flex; align-items: center; }
+  .sidebar-toggle:hover { color: var(--accent); }
   .sidebar-logo { padding: 24px 24px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; text-decoration: none; }
   .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: var(--text); }
   .logo-text span { color: var(--accent); }
@@ -44,7 +50,8 @@ const styles = `
   .user-plan { font-size: 11px; color: var(--accent); letter-spacing: 1px; }
 
   /* ── MAIN ── */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .main, .content { transition: padding 300ms ease-in-out, width 300ms ease-in-out; }
 
   /* ── TOPBAR ── */
   .topbar { height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; flex-shrink: 0; background: var(--bg); }
@@ -52,7 +59,7 @@ const styles = `
   .topbar-title span { color: var(--accent); }
 
   /* VORA AI button */
-  .vora-btn { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; color: var(--bg); background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; cursor: pointer; padding: 9px 22px; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s; position: relative; overflow: hidden; }
+  .vora-btn { display: flex; align-items: center; gap: 8px; position: relative; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; color: var(--bg); background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; cursor: pointer; padding: 9px 22px; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s; overflow: hidden; }
   .vora-btn::after { content: ''; position: absolute; inset: 0; background: white; opacity: 0; transition: opacity 0.2s; }
   .vora-btn:hover::after { opacity: 0.1; }
   .vora-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,160,32,0.3); }
@@ -60,10 +67,10 @@ const styles = `
   @keyframes vorapulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.45;transform:scale(0.65)} }
 
   /* ── CONTENT ── */
-  .content { flex: 1; display: flex; overflow: hidden; }
+  .content { flex: 1; min-width: 0;; display: flex; overflow: hidden; }
 
   /* ── LEFT PANEL ── */
-  .left-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); min-width: 300px; }
+  .left-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); width: 950px; }
   .left-inner { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   .pane-top { overflow: hidden; display: flex; flex-direction: column; min-height: 100px; }
   .pane-bottom { overflow: hidden; display: flex; flex-direction: column; min-height: 60px; background: var(--bg2); }
@@ -87,12 +94,12 @@ const styles = `
   .tab-badge { background: var(--surface3); border: 1px solid var(--border); color: var(--text-muted); font-size: 10px; padding: 1px 6px; letter-spacing: 1px; }
 
   /* ── SCANNER PANEL ── */
-  .scanner-panel { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .scanner-panel { width: 100%; flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
   .scanner-panel::-webkit-scrollbar { width: 3px; }
   .scanner-panel::-webkit-scrollbar-thumb { background: var(--border); }
 
   /* ── UPLOAD ZONE ── */
-  .upload-zone { border: 1px dashed var(--border2); background: var(--surface); padding: 36px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; text-align: center; }
+  .upload-zone { width: 100%;border: 1px dashed var(--border2); background: var(--surface); padding: 36px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; text-align: center;  margin-top: 50px; }
   .upload-zone::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(232,160,32,0.05) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s; }
   .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); border-style: solid; }
   .upload-zone:hover::before, .upload-zone.drag::before { opacity: 1; }
@@ -159,7 +166,8 @@ const styles = `
   .hi-time { font-size: 11px; color: var(--text-dim); margin-left: auto; flex-shrink: 0; }
 
   /* ── RIGHT PANEL / CHAT ── */
-  .right-panel { width: 360px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg2); overflow: hidden; min-width: 260px; border-left: 1px solid var(--border); }
+  /* Right panel is fixed to the right edge so it stays visible and doesn't shift when left sidebar collapses */
+  .right-panel { width: 360px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg2); overflow: hidden; min-width: 260px; border-left: 1px solid var(--border); right: 0; top: 0; height: 100vh; z-index: 1500; }
   .chat-header { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .chat-header-icon { width: 32px; height: 32px; background: linear-gradient(135deg, rgba(232,160,32,0.15), rgba(255,107,26,0.1)); border: 1px solid rgba(232,160,32,0.3); display: flex; align-items: center; justify-content: center; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); flex-shrink: 0; }
   .chat-title { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
@@ -300,6 +308,7 @@ export default function CarvoraDashboard() {
   const [chatInput, setChatInput] = useState("");
   const [typing, setTyping]       = useState(false);
   const [voraOpen, setVoraOpen]   = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const fileRef     = useRef();
   const chatEndRef  = useRef();
@@ -364,11 +373,12 @@ export default function CarvoraDashboard() {
       <div className="app">
 
         {/* SIDEBAR */}
-        <aside className="sidebar">
+        <aside className={`sidebar ${sidebarCollapsed?"collapsed":""}`}>
           <a href="#" className="sidebar-logo">
             <WheelIcon size={22} color="#e8a020"/>
             <span className="logo-text">CARV<span>ORA</span></span>
           </a>
+
           <nav className="sidebar-nav">
             <div className="nav-section-label">Workspace</div>
             <button className={`nav-item ${activeTab==="scanner"?"active":""}`} onClick={()=>setActiveTab("scanner")}>
@@ -409,9 +419,12 @@ export default function CarvoraDashboard() {
         <div className="main">
 
           {/* TOPBAR — only VORA AI button */}
-          <div className="topbar">
-            <div className="topbar-title">
-              {activeTab==="scanner" ? <>CAR <span>SCANNER</span></> : <>SCAN <span>HISTORY</span></>}
+          <div className="topbar" >
+            <div style={{display:"flex",alignItems:"center"}}>
+              <button className="sidebar-toggle" title="Toggle sidebar" onClick={()=>setSidebarCollapsed(s=>!s)}>{sidebarCollapsed?"☰":"☰"}</button>
+              <div className="topbar-title">
+                {activeTab==="scanner" ? <>CAR <span>SCANNER</span></> : <>SCAN <span>HISTORY</span></>}
+              </div>
             </div>
             <button className="vora-btn" onClick={()=>setVoraOpen(o=>!o)}>
               <div className="vora-btn-pulse"/>
@@ -423,22 +436,10 @@ export default function CarvoraDashboard() {
           </div>
 
           {/* CONTENT */}
-          <div className="content">
+          <div className="content" >
 
             {/* LEFT PANEL */}
             <div className="left-panel">
-              <div className="tabs">
-                <button className={`tab ${activeTab==="scanner"?"active":""}`} onClick={()=>setActiveTab("scanner")}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9V6a1 1 0 011-1h4M3 15v3a1 1 0 001 1h4M21 9V6a1 1 0 00-1-1h-4M21 15v3a1 1 0 01-1 1h-4M7 12h10"/></svg>
-                  Scanner
-                </button>
-                <button className={`tab ${activeTab==="history"?"active":""}`} onClick={()=>setActiveTab("history")}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  History
-                  {history.length>0 && <span className="tab-badge">{history.length}</span>}
-                </button>
-              </div>
-
               <div className="left-inner" ref={leftRef}>
                 {/* TOP PANE */}
                 <div className="pane-top" style={{ height:`${leftResize.pct}%` }}>
@@ -536,27 +537,12 @@ export default function CarvoraDashboard() {
                   )}
                 </div>
 
-                {/* LEFT DRAG HANDLE */}
-                <div className={`resize-handle ${leftResize.active?"dragging":""}`} onMouseDown={leftResize.onMouseDown} title="Drag to resize">
-                  <Dots/>
-                </div>
-
-                {/* BOTTOM PANE */}
-                <div className="pane-bottom" style={{ flex:1 }}>
-                  <div className="pane-bottom-label">
-                    <span>Session <em>Notes</em></span>
-                    <span style={{fontSize:"9px",letterSpacing:"1.5px",opacity:0.5}}>↕ drag handle above</span>
-                  </div>
-                  <div style={{flex:1,overflow:"auto",padding:"12px 18px"}}>
-                    <textarea placeholder="Add notes about this scan session..." style={{width:"100%",height:"100%",minHeight:"48px",background:"transparent",border:"none",outline:"none",color:"var(--text-muted)",fontFamily:"'Barlow',sans-serif",fontSize:"13px",lineHeight:"1.7",resize:"none",caretColor:"var(--accent)"}}/>
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* RIGHT: VORA CHAT */}
             {voraOpen && (
-              <div className="right-panel" ref={rightRef}>
+              <div className={`right-panel${voraOpen ? "" : " hidden"}`} ref={rightRef}>
                 <div className="chat-header">
                   <div className="chat-header-icon">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8a020" strokeWidth="1.5">
@@ -594,12 +580,7 @@ export default function CarvoraDashboard() {
                     </div>
                   )}
                   <div ref={chatEndRef}/>
-                </div>
-
-                {/* Chat drag handle */}
-                <div className={`resize-handle ${rightResize.active?"dragging":""}`} onMouseDown={rightResize.onMouseDown} style={{background:"var(--bg2)"}} title="Drag to resize">
-                  <Dots/>
-                </div>
+                </div>                
 
                 {/* Quick prompts + input */}
                 <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}>

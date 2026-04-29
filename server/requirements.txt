@@ -8,4 +8,4 @@ pillow>=10.3.0
 tensorflow==2.16.1
 tf-keras==2.16.0
 setuptools
-gunicorn
+gunicorn>=21.2.0

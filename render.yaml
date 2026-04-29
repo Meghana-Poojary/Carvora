@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: carvora-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r server/requirements.txt
+    startCommand: cd server && gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: HF_TOKEN
+        sync: false
+      - key: FRONTEND_URL
+        value: https://carvora-client.onrender.com
+    healthCheckPath: /health
+    
+  - type: static
+    name: carvora-client
+    staticPublishPath: ./client/dist
+    buildCommand: cd client && npm install && npm run build
+    envVars:
+      - key: VITE_API_URL
+        value: https://carvora-api.onrender.com

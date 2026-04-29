@@ -98,6 +98,16 @@ print("✅ Model loaded successfully")
 with open("class_names.json", "r") as f:
     class_names = json.load(f)
 
+# Health check route
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
+
+# Root route
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({"message": "Carvora API is running", "endpoints": ["/predict", "/health"]}), 200
+
 IMG_SIZE = 224
 
 @app.route("/predict", methods=["POST"])
@@ -143,5 +153,8 @@ def predict():
             os.remove(temp_path)
 
 if __name__ == "__main__":
+    # For local development only
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+print("✅ App initialized and ready for requests")

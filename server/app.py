@@ -2,9 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras.preprocessing import image
+import keras
+from keras import layers
+from keras.utils import load_img, img_to_array
 import tempfile
 import os
 import json
@@ -18,7 +18,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Register custom Keras layers
-@tf.keras.utils.register_keras_serializable(package="Custom")
+@keras.utils.register_keras_serializable(package="Custom")
 class CastToFloat32(layers.Layer):
     def call(self, x):
         return tf.cast(x, tf.float32)
@@ -26,15 +26,15 @@ class CastToFloat32(layers.Layer):
     def compute_output_shape(self, input_shape):
         return input_shape
 
-@tf.keras.utils.register_keras_serializable(package="Custom")
+@keras.utils.register_keras_serializable(package="Custom")
 class EfficientNetPreprocess(layers.Layer):
     def call(self, x):
-        return tf.keras.applications.efficientnet.preprocess_input(x)
+        return keras.applications.efficientnet.preprocess_input(x)
 
     def compute_output_shape(self, input_shape):
         return input_shape
 
-@tf.keras.utils.register_keras_serializable(package="Custom")
+@keras.utils.register_keras_serializable(package="Custom")
 class GeMPooling(layers.Layer):
     def __init__(self, p=3.0, **kwargs):
         super().__init__(**kwargs)
@@ -108,9 +108,8 @@ def predict():
         file.save(temp.name)
         temp_path = temp.name
 
-        # ✅ EXACT SAME AS COLAB
-        img = image.load_img(temp_path, target_size=(IMG_SIZE, IMG_SIZE))
-        img_array = image.img_to_array(img)
+        img = load_img(temp_path, target_size=(IMG_SIZE, IMG_SIZE))
+        img_array = img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
 
         predictions = model.predict(img_array)[0]

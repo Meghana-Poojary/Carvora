@@ -21,7 +21,7 @@ import os
 ALLOWED_ORIGINS = [
     "http://localhost:3000",  # local dev
     "http://localhost:5173",  # Vite dev
-    os.getenv("FRONTEND_URL", "https://your-client-app.onrender.com")  # Production
+    os.getenv("FRONTEND_URL", "https://carvora-app.onrender.com")  # Production
 ]
 
 CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})

@@ -971,7 +971,9 @@ export default function Carvora() {
   const [dragging, setDragging] = useState(false);
   const [result, setResult] = useState(null);
   const [scanning, setScanning] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
   const fileRef = useRef();
+  const resultRef = useRef();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -979,25 +981,70 @@ export default function Carvora() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const simulateScan = () => {
+  useEffect(() => {
+    if (result && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+  }, [result]);
+
+
+  const simulateScan = async (file) => {
+    if (!file) return;
+
     setScanning(true);
     setResult(null);
-    setTimeout(() => {
-      setResult({
-        brand: "Porsche",
-        model: "911 Carrera S",
-        year: "2023",
-        trim: "Carrera S Coupe",
-        confidence: 97,
+    setImagePreview(URL.createObjectURL(file));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        body: formData,
       });
-      setScanning(false);
-    }, 2200);
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      // Parse prediction string: "Brand Model Type Year"
+      // Examples: "BMW 3 Series Sedan 2012", "Ferrari 458 Italia Convertible 2012"
+      const parts = data.prediction.split(" ");
+      const year = parts[parts.length - 1]; // Last part is year
+      const type = parts[parts.length - 2]; // Second to last is type (Sedan, SUV, etc)
+      const modelAndBrand = parts.slice(0, -2).join(" "); // Everything else
+      
+      // Try to split brand and model more intelligently
+      const brandModelParts = modelAndBrand.split(" ");
+      const brand = brandModelParts[0];
+      const model = brandModelParts.slice(1).join(" ");
+
+      setResult({
+        brand: brand,
+        model: model,
+        year: year,
+        trim: type,
+        fullName: data.prediction,
+        confidence: data.confidence,
+      });
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to scan vehicle. Please try again.");
+    }
+
+    setScanning(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
-    simulateScan();
+
+    const file = e.dataTransfer.files[0];
+    setImagePreview(URL.createObjectURL(file));
+    simulateScan(file);
   };
 
   return (
@@ -1034,10 +1081,10 @@ export default function Carvora() {
           <li><a href="#how">How It Works</a></li>
         </ul>
 
-        <div className="nav-actions">
+        {/* <div className="nav-actions">
           <button className="btn-ghost" onClick={() => setModal('login')}>Login</button>
           <button className="btn-primary" onClick={() => setModal('signup')}>Sign Up</button>
-        </div>
+        </div> */}
       </nav>
 
       {/* HERO */}
@@ -1100,36 +1147,67 @@ export default function Carvora() {
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          onClick={() => fileRef.current?.click()}
-          style={{ borderColor: dragging ? 'var(--accent)' : undefined }}
+          onClick={() => !imagePreview && fileRef.current?.click()}
+          style={{ borderColor: dragging ? 'var(--accent)' : undefined, cursor: imagePreview ? 'default' : 'pointer', justifyContent: imagePreview ? 'center' : 'flex-start' }}
         >
-          <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={simulateScan}/>
+          <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} 
+          onChange={(e) => {
+            const file = e.target.files[0];
+            simulateScan(file);
+          }}/>
 
-          <div className="upload-icon">
-            {scanning ? (
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e8a020" strokeWidth="1.5">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" 
-                  strokeLinecap="round">
-                  <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-                </path>
-              </svg>
-            ) : <UploadIcon/>}
-          </div>
-
-          <div className="upload-text">
-            <h3>{scanning ? 'Scanning Vehicle...' : 'Drop Your Car Photo'}</h3>
-            <p>{scanning ? 'AI analyzing 300+ visual features' : 'Or click to browse files from your device'}</p>
-          </div>
-
-          {!scanning && (
-            <div className="upload-formats">
-              {['JPG','PNG','WEBP','HEIC'].map(f => <span key={f} className="format-tag">{f}</span>)}
+          {imagePreview ? (
+            <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'16px', width:'100%', position:'relative', zIndex:10}}>
+              <img src={imagePreview} alt="Uploaded car image" style={{maxWidth:'100%', maxHeight:'400px', borderRadius:'8px'}} />
+              {!scanning && (
+                <button 
+                  type="button"
+                  className="btn-outline-large"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setImagePreview(null);
+                    setResult(null);
+                    if (fileRef.current) {
+                      fileRef.current.value = '';
+                      fileRef.current.click();
+                    }
+                  }}
+                  style={{position:'relative', zIndex:20, pointerEvents:'auto'}}
+                >
+                  Upload Another
+                </button>
+              )}
             </div>
+          ) : (
+            <>
+              <div className="upload-icon">
+                {scanning ? (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e8a020" strokeWidth="1.5">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" 
+                      strokeLinecap="round">
+                      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                    </path>
+                  </svg>
+                ) : <UploadIcon/>}
+              </div>
+
+              <div className="upload-text">
+                <h3>{scanning ? 'Scanning Vehicle...' : 'Drop Your Car Photo'}</h3>
+                <p>{scanning ? 'AI analyzing 300+ visual features' : 'Or click to browse files from your device'}</p>
+              </div>
+
+              {!scanning && (
+                <div className="upload-formats">
+                  {['JPG','PNG','WEBP','HEIC'].map(f => <span key={f} className="format-tag">{f}</span>)}
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {result && (
-          <div className="result-card">
+          <div className="result-card" ref={resultRef}>
             <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,#e8a020,#ff6b1a)'}}/>
             <div>
               <div className="result-label">Brand</div>
@@ -1144,7 +1222,7 @@ export default function Carvora() {
               <div className="result-value">{result.year}</div>
             </div>
             <div>
-              <div className="result-label">Trim</div>
+              <div className="result-label">Type</div>
               <div className="result-value" style={{fontSize:'24px'}}>{result.trim}</div>
             </div>
             <div className="confidence-bar">
@@ -1154,9 +1232,13 @@ export default function Carvora() {
               </div>
               <div className="confidence-text">
                 <span>0%</span>
-                <span style={{color:'var(--accent)',fontWeight:600}}>{result.confidence}% match</span>
+                <span style={{color:'var(--accent)',fontWeight:600}}>{result.confidence.toFixed(2)}% match</span>
                 <span>100%</span>
               </div>
+            </div>
+            <div style={{gridColumn:'1/-1', paddingTop:'16px', borderTop:'1px solid var(--border)', marginTop:'16px'}}>
+              <div className="result-label">Full Classification</div>
+              <div style={{fontSize:'16px', color:'var(--text-muted)', marginTop:'8px'}}>{result.fullName}</div>
             </div>
           </div>
         )}
@@ -1203,7 +1285,7 @@ export default function Carvora() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA
       <section className="cta-section">
         <div style={{position:'relative', zIndex:1}}>
           <div className="section-eyebrow" style={{justifyContent:'center',display:'flex'}}>Get Started</div>
@@ -1214,7 +1296,7 @@ export default function Carvora() {
             <button className="btn-outline-large" onClick={() => document.getElementById('scan').scrollIntoView({behavior:'smooth'})}>Try Without Signing Up</button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* FOOTER */}
       <footer>
@@ -1227,7 +1309,7 @@ export default function Carvora() {
       </footer>
 
       {/* MODALS */}
-      {modal && (
+      {/* {modal && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
           <div className="modal">
             <div className="modal-header">
@@ -1263,7 +1345,7 @@ export default function Carvora() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 }

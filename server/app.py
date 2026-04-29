@@ -66,37 +66,49 @@ class GeMPooling(layers.Layer):
 
 print("✅ Custom layers registered")
 
-# Get HF_TOKEN from environment
+# Global variables for lazy loading
+model = None
+class_names = None
 hf_token = os.getenv("HF_TOKEN")
 
-# Download model from Hugging Face Hub
-print("📥 Downloading model from Hugging Face Hub...")
-try:
-    model_path = hf_hub_download(
-        repo_id="MeghanaVP/car-subtype-classifier",
-        filename="final_cars.keras",
-        cache_dir="./models",
-        token=hf_token
+def load_model_and_classes():
+    """Lazy load model and class names to save memory on startup"""
+    global model, class_names
+    
+    if model is not None:
+        return  # Already loaded
+    
+    print("📥 Loading model and classes...")
+    
+    # Download model from Hugging Face Hub
+    try:
+        model_path = hf_hub_download(
+            repo_id="MeghanaVP/car-subtype-classifier",
+            filename="final_cars.keras",
+            cache_dir="./models",
+            token=hf_token
+        )
+        print(f"✅ Model downloaded to: {model_path}")
+    except Exception as e:
+        print(f"⚠️ Failed to download from HF: {e}")
+        print("📂 Falling back to local model...")
+        model_path = "final_cars.keras"
+
+    # Load model with custom objects
+    model = keras.models.load_model(
+        model_path,
+        custom_objects={
+            "CastToFloat32": CastToFloat32,
+            "EfficientNetPreprocess": EfficientNetPreprocess,
+            "GeMPooling": GeMPooling,
+        }
     )
-    print(f"✅ Model downloaded to: {model_path}")
-except Exception as e:
-    print(f"⚠️ Failed to download from HF: {e}")
-    print("📂 Falling back to local model...")
-    model_path = "final_cars.keras"
+    print("✅ Model loaded successfully")
 
-# Load model with custom objects
-model = keras.models.load_model(
-    model_path,
-    custom_objects={
-        "CastToFloat32": CastToFloat32,
-        "EfficientNetPreprocess": EfficientNetPreprocess,
-        "GeMPooling": GeMPooling,
-    }
-)
-print("✅ Model loaded successfully")
-
-with open("class_names.json", "r") as f:
-    class_names = json.load(f)
+    with open("class_names.json", "r") as f:
+        class_names = json.load(f)
+    
+    print("✅ Classes loaded successfully")
 
 # Health check route
 @app.route("/health", methods=["GET"])
@@ -114,6 +126,9 @@ IMG_SIZE = 224
 def predict():
     temp_path = None
     try:
+        # Lazy load model on first request
+        load_model_and_classes()
+        
         print("📩 Request received")
 
         if "file" not in request.files:

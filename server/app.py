@@ -15,7 +15,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+import os
+
+# Update CORS to accept your Render client URL
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # local dev
+    "http://localhost:5173",  # Vite dev
+    os.getenv("FRONTEND_URL", "https://your-client-app.onrender.com")  # Production
+]
+
+CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})
 
 # Register custom Keras layers
 @keras.utils.register_keras_serializable(package="Custom")

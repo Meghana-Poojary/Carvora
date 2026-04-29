@@ -1161,7 +1161,22 @@ export default function Carvora() {
 
           {imagePreview ? (
             <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'16px', width:'100%', position:'relative', zIndex:10}}>
-              <img src={imagePreview} alt="Uploaded car image" style={{maxWidth:'100%', maxHeight:'400px', borderRadius:'8px'}} />
+              <div style={{position:'relative', display:'inline-block'}}>
+                <img src={imagePreview} alt="Uploaded car image" style={{maxWidth:'100%', maxHeight:'400px', borderRadius:'8px', opacity: scanning ? 0.5 : 1, transition: 'opacity 0.3s'}} />
+                {scanning && (
+                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'16px'}}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e8a020" strokeWidth="1.5">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" 
+                        strokeLinecap="round">
+                        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                      </path>
+                    </svg>
+                    <div style={{fontFamily:"'Barlow Condensed', sans-serif", fontSize:'14px', letterSpacing:'2px', textTransform:'uppercase', color:'var(--accent)', textAlign:'center'}}>
+                      Analyzing Vehicle...
+                    </div>
+                  </div>
+                )}
+              </div>
               {!scanning && (
                 <button 
                   type="button"

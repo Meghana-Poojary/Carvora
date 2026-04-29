@@ -975,6 +975,9 @@ export default function Carvora() {
   const fileRef = useRef();
   const resultRef = useRef();
 
+  // Get API URL from environment variable
+  const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
@@ -1001,7 +1004,7 @@ export default function Carvora() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("http://127.0.0.1:5000/predict", {
+      const response = await fetch(`${API_URL}/predict`, {
         method: "POST",
         body: formData,
       });

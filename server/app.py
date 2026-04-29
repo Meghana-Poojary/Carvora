@@ -27,12 +27,6 @@ if gpus:
     except RuntimeError as e:
         print(f"GPU memory growth error: {e}")
 
-# Set CPU memory limit (256MB max)
-tf.config.experimental.set_virtual_device_configuration(
-    tf.config.list_physical_devices('CPU')[0],
-    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=256)]
-)
-
 app = Flask(__name__)
 
 # Allow requests from frontend

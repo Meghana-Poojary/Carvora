@@ -15,16 +15,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-import os
 
-# Update CORS to accept your Render client URL
-ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # local dev
-    "http://localhost:5173",  # Vite dev
-    os.getenv("FRONTEND_URL", "https://carvora-app.onrender.com")  # Production
-]
-
-CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})
+# Allow requests from frontend
+CORS(app, 
+     origins=[
+         "http://localhost:3000",
+         "http://localhost:5173", 
+         "https://carvora-app.onrender.com",
+         "https://carvora-server.onrender.com"
+     ],
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type"],
+     supports_credentials=True
+)
 
 # Register custom Keras layers
 @keras.utils.register_keras_serializable(package="Custom")
@@ -80,35 +83,42 @@ def load_model_and_classes():
     
     print("📥 Loading model and classes...")
     
-    # Download model from Hugging Face Hub
     try:
-        model_path = hf_hub_download(
-            repo_id="MeghanaVP/car-subtype-classifier",
-            filename="final_cars.keras",
-            cache_dir="./models",
-            token=hf_token
+        # Download model from Hugging Face Hub
+        try:
+            model_path = hf_hub_download(
+                repo_id="MeghanaVP/car-subtype-classifier",
+                filename="final_cars.keras",
+                cache_dir="./models",
+                token=hf_token
+            )
+            print(f"✅ Model downloaded to: {model_path}")
+        except Exception as e:
+            print(f"⚠️ Failed to download from HF: {e}")
+            print("📂 Falling back to local model...")
+            model_path = "final_cars.keras"
+
+        # Load model with custom objects
+        model = keras.models.load_model(
+            model_path,
+            custom_objects={
+                "CastToFloat32": CastToFloat32,
+                "EfficientNetPreprocess": EfficientNetPreprocess,
+                "GeMPooling": GeMPooling,
+            }
         )
-        print(f"✅ Model downloaded to: {model_path}")
+        print("✅ Model loaded successfully")
+
+        with open("class_names.json", "r") as f:
+            class_names = json.load(f)
+        
+        print("✅ Classes loaded successfully")
+        
     except Exception as e:
-        print(f"⚠️ Failed to download from HF: {e}")
-        print("📂 Falling back to local model...")
-        model_path = "final_cars.keras"
-
-    # Load model with custom objects
-    model = keras.models.load_model(
-        model_path,
-        custom_objects={
-            "CastToFloat32": CastToFloat32,
-            "EfficientNetPreprocess": EfficientNetPreprocess,
-            "GeMPooling": GeMPooling,
-        }
-    )
-    print("✅ Model loaded successfully")
-
-    with open("class_names.json", "r") as f:
-        class_names = json.load(f)
-    
-    print("✅ Classes loaded successfully")
+        print(f"🔥 CRITICAL: Failed to load model/classes: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 # Health check route
 @app.route("/health", methods=["GET"])
@@ -122,19 +132,30 @@ def index():
 
 IMG_SIZE = 224
 
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
+    # Handle CORS preflight requests
+    if request.method == "OPTIONS":
+        return "", 200
+        
     temp_path = None
     try:
-        # Lazy load model on first request
-        load_model_and_classes()
-        
         print("📩 Request received")
-
+        
+        # Lazy load model on first request
+        try:
+            load_model_and_classes()
+        except Exception as e:
+            print(f"❌ Model loading failed: {e}")
+            return jsonify({"error": f"Model loading failed: {str(e)}"}), 503
+        
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
 
         file = request.files["file"]
+        
+        if file.filename == "":
+            return jsonify({"error": "No file selected"}), 400
 
         # Save temp
         temp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
@@ -157,15 +178,20 @@ def predict():
         return jsonify({
             "prediction": predicted_class,
             "confidence": round(confidence, 2)
-        })
+        }), 200
 
     except Exception as e:
-        print("🔥 ERROR:", e)
+        print("🔥 ERROR:", str(e))
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
     finally:
         if temp_path and os.path.exists(temp_path):
-            os.remove(temp_path)
+            try:
+                os.remove(temp_path)
+            except:
+                pass
 
 if __name__ == "__main__":
     # For local development only

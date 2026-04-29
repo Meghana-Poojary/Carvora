@@ -14,6 +14,25 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# ⚡ CRITICAL: Optimize TensorFlow for low memory environments
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logs
+tf.get_logger().setLevel('ERROR')  # Suppress TF info/warning logs
+
+# Limit memory growth - don't allocate all GPU/CPU memory upfront
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(f"GPU memory growth error: {e}")
+
+# Set CPU memory limit (256MB max)
+tf.config.experimental.set_virtual_device_configuration(
+    tf.config.list_physical_devices('CPU')[0],
+    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=256)]
+)
+
 app = Flask(__name__)
 
 # Allow requests from frontend

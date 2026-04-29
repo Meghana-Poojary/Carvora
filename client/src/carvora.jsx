@@ -613,7 +613,7 @@ const styles = `
 
   .hiw-steps {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* updated from 4 */
     gap: 0;
     margin-top: 80px;
     position: relative;
@@ -622,7 +622,9 @@ const styles = `
   .hiw-steps::before {
     content: '';
     position: absolute;
-    top: 36px; left: 5%; right: 5%;
+    top: 36px;
+    left: 16.5%;  /* updated */
+    right: 16.5%; /* updated */
     height: 1px;
     background: var(--border);
     z-index: 0;
@@ -1310,18 +1312,6 @@ export default function Carvora() {
         </div>
       </section>
 
-      {/* CTA
-      <section className="cta-section">
-        <div style={{position:'relative', zIndex:1}}>
-          <div className="section-eyebrow" style={{justifyContent:'center',display:'flex'}}>Get Started</div>
-          <h2 className="section-title">READY TO <span className="accent">SCAN</span>?</h2>
-          <p className="cta-sub">Join 50,000+ car enthusiasts, dealers, and collectors who identify vehicles with Carvora every day.</p>
-          <div className="cta-actions">
-            <button className="btn-large" onClick={() => setModal('signup')}>Create Account</button>
-            <button className="btn-outline-large" onClick={() => document.getElementById('scan').scrollIntoView({behavior:'smooth'})}>Try Without Signing Up</button>
-          </div>
-        </div>
-      </section> */}
 
       {/* FOOTER */}
       <footer>
@@ -1333,44 +1323,7 @@ export default function Carvora() {
         </div>
       </footer>
 
-      {/* MODALS */}
-      {/* {modal && (
-        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal">
-            <div className="modal-header">
-              <h2 className="modal-title">
-                {modal === 'login' ? <>LOG <span>IN</span></> : <>SIGN <span>UP</span></>}
-              </h2>
-              <button className="modal-close" onClick={() => setModal(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              {modal === 'signup' && (
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <input className="form-input" placeholder="Your Full Name" type="text"/>
-                </div>
-              )}
-              <div className="form-group">
-                <label className="form-label">Email</label>
-                <input className="form-input" placeholder="you@example.com" type="email"/>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Password</label>
-                <input className="form-input" placeholder="••••••••" type="password"/>
-              </div>
-              <button className="btn-large" style={{width:'100%',marginTop:'8px', clipPath:'none'}}>
-                {modal === 'login' ? 'Login' : 'Create Account'}
-              </button>
-            </div>
-            <div className="modal-footer">
-              {modal === 'login'
-                ? <>No account? <button onClick={() => setModal('signup')}>Sign up free</button></>
-                : <>Already have one? <button onClick={() => setModal('login')}>Log in</button></>
-              }
-            </div>
-          </div>
-        </div>
-      )} */}
+      
     </>
   );
 }

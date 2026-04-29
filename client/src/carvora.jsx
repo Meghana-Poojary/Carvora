@@ -950,19 +950,48 @@ const UploadIcon = () => (
 );
 
 const features = [
-  { num: "01", title: "AI Recognition", icon: "🔍", desc: "Advanced neural networks trained on 50,000+ car models. Detects make, model, year, and trim level from any angle." },
-  { num: "02", title: "Instant Analysis", icon: "⚡", desc: "Get results in under 2 seconds. Our edge-optimized inference pipeline processes your image at lightning speed." },
-  { num: "03", title: "Deep Metadata", icon: "📊", desc: "Beyond the basics — horsepower, torque, MSRP, production years, rarity score, and market value estimates." },
-  { num: "04", title: "Multi-Angle", icon: "🔄", desc: "Front, rear, side, or three-quarter views. Our model handles partial occlusions and challenging lighting." },
-  { num: "05", title: "Global Database", icon: "🌐", desc: "Over 200 brands from 40 countries. From American muscle to JDM legends, European exotics to Chinese EVs." },
-  { num: "06", title: "History Reports", icon: "📋", desc: "Save your scans, build collections, track your garage. Full history with export to PDF or CSV." },
+  {
+    num: "01",
+    title: "Custom Layer Support",
+    icon: "🧩",
+    desc: "Avoids TensorFlow Lambda serialization issues using custom registered layers, ensuring reliable model loading across environments."
+  },
+  {
+    num: "02",
+    title: "GeM Pooling",
+    icon: "📐",
+    desc: "Implements Generalized Mean (GeM) pooling for improved feature extraction compared to traditional average pooling."
+  },
+  {
+    num: "03",
+    title: "Robust Augmentation",
+    icon: "🎯",
+    desc: "A strong image augmentation pipeline enhances generalization and improves model performance on diverse inputs."
+  },
+  {
+    num: "04",
+    title: "Optimized Input",
+    icon: "🖼️",
+    desc: "Model expects images resized to 224×224, ensuring consistent inference and optimal accuracy."
+  },
+  {
+    num: "05",
+    title: "Hugging Face Hosting",
+    icon: "🤗",
+    desc: "Model is hosted on Hugging Face Hub and automatically downloaded and cached locally for seamless usage."
+  },
+  {
+    num: "06",
+    title: "Fast Reload & Performance",
+    icon: "⚡",
+    desc: "After initial download, the model loads instantly from cache, delivering efficient and repeatable inference performance."
+  },
 ];
 
 const steps = [
   { num: "01", title: "Upload Photo", desc: "Drop any car image — photo, screenshot, or URL. JPG, PNG, WEBP accepted." },
   { num: "02", title: "AI Scans", desc: "Our vision model analyzes 300+ visual features in milliseconds." },
-  { num: "03", title: "Get Results", desc: "Brand, model, year, trim, and confidence score delivered instantly." },
-  { num: "04", title: "Explore Details", desc: "Dive deep with specs, history, market data, and similar models." },
+  { num: "03", title: "Get Results", desc: "Brand, model, year, trim, and confidence score delivered instantly." }
 ];
 
 export default function Carvora() {
@@ -1110,28 +1139,6 @@ export default function Carvora() {
 
         <div className="hero-car">
           <CarSVG/>
-        </div>
-
-        <div className="hero-stats">
-          <div className="stat">
-            <div className="stat-num">50<span>K+</span></div>
-            <div className="stat-label">Car Models</div>
-          </div>
-          <div className="stat-sep"/>
-          <div className="stat">
-            <div className="stat-num">99<span>%</span></div>
-            <div className="stat-label">Accuracy Rate</div>
-          </div>
-          <div className="stat-sep"/>
-          <div className="stat">
-            <div className="stat-num">2<span>s</span></div>
-            <div className="stat-label">Avg Scan Time</div>
-          </div>
-          <div className="stat-sep"/>
-          <div className="stat">
-            <div className="stat-num">200<span>+</span></div>
-            <div className="stat-label">Global Brands</div>
-          </div>
         </div>
       </section>
 

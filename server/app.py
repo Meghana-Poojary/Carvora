@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
-import tflite_runtime.interpreter as tflite
+import tensorflow as tf
 from PIL import Image
 import tempfile
 import os
@@ -56,7 +56,7 @@ def load_tflite_model_and_classes():
                 raise FileNotFoundError("TFLite model not found. Please upload final_cars.tflite to HuggingFace.")
 
         # Load TFLite interpreter ✅
-        tflite_interpreter = tflite.Interpreter(model_path=model_path)
+        tflite_interpreter = tf.lite.Interpreter(model_path=model_path)
         tflite_interpreter.allocate_tensors()
         print(f"✅ TFLite model loaded successfully")
 

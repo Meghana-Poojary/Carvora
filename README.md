@@ -63,7 +63,6 @@ The model uses custom preprocessing, advanced pooling (GeM), and strong data aug
 1. **Clone the repository**
    ```bash
    git clone <your-repo-url>
-   cd Carvora
    ```
 
 2. **Install dependencies**

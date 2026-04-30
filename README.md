@@ -87,9 +87,6 @@ The model uses custom preprocessing, advanced pooling (GeM), and strong data aug
    ```
    
    > **Note:** The model is automatically downloaded from Hugging Face Hub on first run.
-   > 
-   > - If your model is **public**, you don't need a token
-   > - If your model is **private**, add your HF token to `.env`
    > - Get your token from: [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
 
 4. **Run the servers**
@@ -105,10 +102,6 @@ The model uses custom preprocessing, advanced pooling (GeM), and strong data aug
    cd client
    npm run dev
    ```
-
-5. **Open the application**
-   
-   Visit: `http://localhost:5174`
 
 ---
 

@@ -1,25 +1,6 @@
 # Render Deployment Steps
 
-## For Server (Flask API)
-
-1. **In Render Dashboard:**
-   - Create a new Web Service
-   - Connect your GitHub repo
-   - Fill in these details:
-     - **Name:** `carvora-server`
-     - **Root Directory:** (leave empty if root, or `server` if monorepo)
-     - **Runtime:** Python
-     - **Build Command:** `pip install -r requirements.txt`
-     - **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120`
-
-2. **Environment Variables (Critical!):**
-   - `HF_TOKEN`: [Get from huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-   - `PYTHON_VERSION`: `3.11.9`
-   - `FRONTEND_URL`: (set this AFTER you deploy the client)
-
-3. **Deploy** and wait for the "Your service is live on..." message
-
-## For Client (Vite React)
+## For Client (Vite React) https://carvora-app.onrender.com/
 
 1. **Update API URL in your code:**
    - In any component making API calls, use:
